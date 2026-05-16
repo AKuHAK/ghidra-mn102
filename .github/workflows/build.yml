@@ -1,0 +1,51 @@
+name: Build Ghidra Extension
+
+on:
+  push:
+    branches: [ "master", "main" ]
+  pull_request:
+    branches: [ "master", "main" ]
+  workflow_dispatch: # Позволяет запускать сборку вручную из веб-интерфейса
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ghidra-version: "12.1.0"
+            java-version: "21"
+
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: ${{ matrix.java-version }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Setup Ghidra
+        uses: antoniovazquezblanco/setup-ghidra@v2
+        with:
+          version: ${{ matrix.ghidra-version }}
+          auth_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Extension with Gradle
+        run: |
+          # Переменная GHIDRA_INSTALL_PATH устанавливается экшеном setup-ghidra автоматиски
+          export GHIDRA_INSTALL_DIR="$GHIDRA_INSTALL_PATH"
+          gradle
+
+      - name: Upload Compiled Extension Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ghidra-${{ matrix.ghidra-version }}-mn102-extension
+          path: dist/*.zip
