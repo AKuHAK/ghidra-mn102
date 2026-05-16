@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - ghidra-version: "12.1.0"
+          - ghidra-version: "12.1"
             java-version: "21"
 
 
